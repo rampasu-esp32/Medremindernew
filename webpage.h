@@ -1,0 +1,478 @@
+#pragma once
+#include <Arduino.h>
+
+// Generated from relay-server/public/index.html (bilingual English / Tamil, installable-app aware).
+// Note: the manifest/service worker/icon files it links to are served by the relay server, not by
+// this device. On the LAN-only page the links simply fail to load; the page itself is unaffected.
+const char INDEX_HTML[] PROGMEM = R"rawliteral(
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2f6fed" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f151b" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<!-- iOS: Safari ignores the manifest for "Add to Home Screen", so these cover it too -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pill box">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Pill box</title>
+<style>
+:root{
+  --bg:#edf0f3;--surface:#fff;--ink:#16212c;--muted:#5d6b79;--line:#d6dce3;--field:#f5f7f9;
+  --danger:#c23b22;
+  --font:ui-rounded,"SF Pro Rounded","Segoe UI",system-ui,-apple-system,Roboto,"Noto Sans Tamil","Nirmala UI","Latha","Tamil Sangam MN",sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0f151b;--surface:#18212a;--ink:#e8eef3;--muted:#93a1af;--line:#2a3540;--field:#111a22;--danger:#ff7a5f}
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 var(--font);padding-bottom:4rem}
+html[lang=ta] body{line-height:1.65}
+h2{font-size:1.05rem;margin:0 0 .75rem}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid #2f6fed;outline-offset:2px}
+
+header{padding:1.5rem 1.25rem 1rem;max-width:44rem;margin:0 auto}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem}
+.clock{font-variant-numeric:tabular-nums;font-weight:300;font-size:clamp(3rem,15vw,4.5rem);line-height:1;letter-spacing:-.02em}
+.clock small{font-size:.4em;color:var(--muted);letter-spacing:0}
+#date{color:var(--muted);margin-top:.35rem}
+.langbtn{padding:.45rem .85rem;font-weight:600;white-space:nowrap}
+.next{margin-top:1rem;padding:.7rem .9rem;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.next b{font-weight:600}
+#offline{margin-top:.6rem;color:var(--danger);font-size:.9rem}
+
+main{display:grid;gap:1rem;max-width:44rem;margin:0 auto;padding:0 1rem}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.lid{display:flex;justify-content:space-between;align-items:center;padding:.6rem 1rem;background:var(--c);color:#fff;font-weight:600}
+.lid span{font-weight:500;font-size:.85rem;opacity:.95}
+.lid .boxname{font-size:1rem;font-weight:600;opacity:1}
+.box.due .lid{animation:pulse 1s steps(2,jump-none) infinite}
+@keyframes pulse{50%{filter:brightness(1.35) saturate(1.2)}}
+@media (prefers-reduced-motion:reduce){.box.due .lid{animation:none}}
+.body{padding:1rem;display:grid;gap:.9rem}
+.row{display:flex;justify-content:space-between;align-items:center;gap:.75rem;flex-wrap:wrap}
+.badge{font-size:.85rem;padding:.2rem .65rem;border-radius:999px;background:var(--field);border:1px solid var(--line);color:var(--muted)}
+.badge.due{background:var(--c);border-color:var(--c);color:#fff;font-weight:600}
+label{display:grid;gap:.3rem;font-size:.9rem;color:var(--muted)}
+select,input[type=text],input[type=time]{width:100%;padding:.6rem .7rem;border:1px solid var(--line);border-radius:10px;background:var(--field);color:var(--ink)}
+.sw{display:flex;flex-direction:row;align-items:center;gap:.5rem;color:var(--ink)}
+.sw input{width:1.25rem;height:1.25rem;accent-color:var(--c)}
+fieldset{border:0;padding:0;margin:0;display:grid;gap:.5rem}
+legend{font-size:.9rem;color:var(--muted);padding:0;margin-bottom:.3rem}
+.times{display:flex;gap:.5rem;flex-wrap:wrap}
+.chip{display:flex;align-items:center;border:1px solid var(--line);background:var(--field);border-radius:10px;padding-right:.2rem}
+.chip input{border:0;background:transparent;width:7.2rem;padding:.55rem .6rem}
+.x{border:0;background:transparent;font-size:1.3rem;line-height:1;padding:.3rem .5rem;color:var(--muted);cursor:pointer;border-radius:8px}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:.3rem}
+.day{padding:.55rem 0;border-radius:10px;border:1px solid var(--line);background:var(--field);color:var(--muted);cursor:pointer;font-size:.85rem}
+html[lang=ta] .day{font-size:.8rem}
+.day.on{background:var(--c);border-color:var(--c);color:#fff;font-weight:600}
+.actions{display:flex;gap:.5rem;flex-wrap:wrap}
+.btn{padding:.65rem 1rem;border-radius:10px;border:1px solid var(--line);background:transparent;cursor:pointer;font-weight:500}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn.add{align-self:start;justify-self:start}
+
+.panel{max-width:44rem;margin:1rem auto 0;padding:1rem;background:var(--surface);border:1px solid var(--line);border-radius:16px;width:calc(100% - 2rem)}
+.panel .grid{display:grid;gap:.9rem}
+input[type=range]{width:100%;accent-color:var(--ink)}
+#log{list-style:none;margin:0;padding:0;display:grid;gap:.4rem;font-size:.92rem}
+#log li{display:flex;gap:.75rem}
+#log time{color:var(--muted);font-variant-numeric:tabular-nums;flex:none}
+.empty{color:var(--muted)}
+#toast{position:fixed;left:50%;bottom:1.25rem;transform:translate(-50%,150%);background:var(--ink);color:var(--bg);padding:.65rem 1rem;border-radius:10px;transition:transform .2s;max-width:90vw;z-index:9}
+#toast.show{transform:translate(-50%,0)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <div>
+      <div class="clock"><span id="hm">--:--</span><small id="sec">:--</small></div>
+      <div id="date"></div>
+    </div>
+    <div style="display:flex;gap:.5rem">
+      <button class="btn" id="installbtn" type="button" hidden></button>
+      <button class="btn langbtn" id="langbtn" type="button" aria-label="Language / மொழி"></button>
+    </div>
+  </div>
+  <div class="next" id="next"></div>
+  <div id="offline" hidden></div>
+</header>
+
+<main id="boxes"></main>
+
+<section class="panel">
+  <h2 data-i18n="settings"></h2>
+  <div class="grid">
+    <label><span data-i18n="tz"></span>
+      <select id="tz"></select>
+    </label>
+    <button class="btn" id="tzphone" type="button" data-i18n="tzPhone"></button>
+    <label><span data-i18n="voiceLang"></span>
+      <select id="vlang"><option value="0">English</option><option value="1">தமிழ்</option></select>
+    </label>
+    <label><span><span data-i18n="volume"></span>: <span id="volv"></span></span>
+      <input type="range" id="vol" min="0" max="21" step="1">
+    </label>
+    <button class="btn primary" id="saveset" type="button" data-i18n="saveSet"></button>
+  </div>
+</section>
+
+<section class="panel">
+  <h2 data-i18n="activity"></h2>
+  <ul id="log"></ul>
+</section>
+
+<div id="toast" role="status"></div>
+
+<script>
+const COL=['#2f6fed','#16a37a','#d99100','#8a56e0'];
+// [value stored on the device (English), Tamil display name]
+const MEDS=[['Metformin','மெட்ஃபார்மின்'],['Insulin','இன்சுலின்'],['Aspirin','ஆஸ்பிரின்'],['Atorvastatin','அடோர்வாஸ்டாடின்'],['Metoprolol','மெட்டோப்ரோலால்'],['Levothyroxine','லெவோதைராக்சின்']];
+const INS=[['','noInstr'],['before food','insBefore'],['after food','insAfter'],['on empty stomach','insEmpty'],['at bedtime','insBed']];
+const DAYS={en:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],ta:['ஞா','தி','செ','பு','வி','வெ','ச']};
+const DAYFULL={en:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],ta:['ஞாயிறு','திங்கள்','செவ்வாய்','புதன்','வியாழன்','வெள்ளி','சனி']};
+const TZS=[-720,-660,-600,-570,-540,-480,-420,-360,-300,-240,-210,-180,-120,-60,0,60,120,180,210,240,270,300,330,345,360,390,420,480,525,540,570,600,630,660,720,765,780,840];
+
+const I18N={
+en:{
+ title:'Pill box',connecting:'Connecting to the pill box...',
+ offNet:"Can't reach the pill box or the server. Check your internet or Wi-Fi connection.",
+ devOfflineNote:'The pill box is offline. Showing the last known information.',
+ waitTime:'Waiting for network time',nextDose:'Next dose:',noDoses:'No doses scheduled',notSynced:'Time not synced yet',
+ devOffline:'Device is offline',devWaiting:'Waiting for the device...',
+ nx:'Box {b} {name} at {when} (in {in})',
+ box:'Box {n}',lidOpen:'Lid open',lidClosed:'Lid closed',waiting:'Waiting',off:'Off',takeNow:'Take now',taken:'Taken',missed:'Missed',
+ remOn:'Reminders on',medicine:'Medicine',selMed:'Select a medicine',other:'Other',medName:'Medicine name',howTo:'How to take it',
+ noInstr:'No instruction',insBefore:'Before food',insAfter:'After food',insEmpty:'Empty stomach',insBed:'At bedtime',
+ times:'Times',addTime:'Add a time',rmTime:'Remove time',days:'Days',saveBox:'Save box {n}',test:'Test alarm',ack:'Mark as taken',
+ settings:'Settings',tz:'Time zone',tzPhone:"Use this phone's time zone",voiceLang:'Voice and message language',volume:'Voice volume',saveSet:'Save settings',
+ activity:'Recent activity',nothing:'Nothing yet.',
+ install:'Install app',installed:'App installed.',
+ needMed:'Choose a medicine first.',needTime:'Add at least one time.',needDay:'Pick at least one day.',saved:'Box {n} saved.',
+ saveFail:"Couldn't save. Check the connection.",testOk:'Test alarm started. Open the lid to stop it.',testFail:"Couldn't start the test.",
+ ackOk:'Marked as taken.',ackFail:"Couldn't update.",maxTimes:'Up to 4 times per box.',tzMissing:'That offset is not in the list.',
+ tzSet:'Set to {tz}. Save settings to apply.',setOk:'Settings saved.',setFail:"Couldn't save settings.",
+ logTaken:'Box {b}: {name} taken ({src})',logDue:'Box {b}: {name} is due',logDueTest:'Box {b}: {name} is due (test)',
+ logMissed:'Box {b}: {name} missed',logSaved:'Box {b} saved: {name}',logSettings:'Settings saved',empty:'(empty)',
+ src_lid:'lid opened',src_tg:'Telegram',src_web:'web app',src_remote:'remote app'
+},
+ta:{
+ title:'மாத்திரைப் பெட்டி',connecting:'மாத்திரைப் பெட்டியுடன் இணைக்கிறது...',
+ offNet:'மாத்திரைப் பெட்டி அல்லது சர்வருடன் இணைக்க முடியவில்லை. இணையம் அல்லது வைஃபை இணைப்பைச் சரிபார்க்கவும்.',
+ devOfflineNote:'மாத்திரைப் பெட்டி ஆஃப்லைனில் உள்ளது. கடைசியாகக் கிடைத்த தகவல் காட்டப்படுகிறது.',
+ waitTime:'நெட்வொர்க் நேரத்திற்காகக் காத்திருக்கிறது',nextDose:'அடுத்த மருந்து:',noDoses:'மருந்துகள் எதுவும் திட்டமிடப்படவில்லை',notSynced:'நேரம் இன்னும் ஒத்திசைக்கப்படவில்லை',
+ devOffline:'சாதனம் ஆஃப்லைனில் உள்ளது',devWaiting:'சாதனத்திற்காகக் காத்திருக்கிறது...',
+ nx:'பெட்டி {b} {name}, {when} மணிக்கு ({in} கழித்து)',
+ box:'பெட்டி {n}',lidOpen:'மூடி திறந்துள்ளது',lidClosed:'மூடி மூடப்பட்டுள்ளது',waiting:'காத்திருக்கிறது',off:'நிறுத்தப்பட்டுள்ளது',takeNow:'இப்போது எடுக்கவும்',taken:'எடுத்தது',missed:'தவறியது',
+ remOn:'நினைவூட்டல்கள் இயக்கத்தில்',medicine:'மருந்து',selMed:'மருந்தைத் தேர்ந்தெடுக்கவும்',other:'மற்றவை',medName:'மருந்தின் பெயர்',howTo:'எப்படி எடுத்துக்கொள்ள வேண்டும்',
+ noInstr:'அறிவுறுத்தல் இல்லை',insBefore:'உணவுக்கு முன்',insAfter:'உணவுக்குப் பின்',insEmpty:'வெறும் வயிற்றில்',insBed:'படுக்கை நேரத்தில்',
+ times:'நேரங்கள்',addTime:'நேரம் சேர்',rmTime:'நேரத்தை நீக்கு',days:'நாட்கள்',saveBox:'பெட்டி {n} சேமி',test:'சோதனை அலாரம்',ack:'எடுத்ததாகக் குறி',
+ settings:'அமைப்புகள்',tz:'நேர மண்டலம்',tzPhone:'இந்த தொலைபேசியின் நேர மண்டலத்தைப் பயன்படுத்து',voiceLang:'குரல் மற்றும் செய்தி மொழி',volume:'குரல் ஒலியளவு',saveSet:'அமைப்புகளைச் சேமி',
+ activity:'சமீபத்திய செயல்பாடுகள்',nothing:'இதுவரை எதுவும் இல்லை.',
+ install:'ஆப்ஸை நிறுவு',installed:'ஆப் நிறுவப்பட்டது.',
+ needMed:'முதலில் மருந்தைத் தேர்ந்தெடுக்கவும்.',needTime:'குறைந்தது ஒரு நேரத்தைச் சேர்க்கவும்.',needDay:'குறைந்தது ஒரு நாளைத் தேர்ந்தெடுக்கவும்.',saved:'பெட்டி {n} சேமிக்கப்பட்டது.',
+ saveFail:'சேமிக்க முடியவில்லை. இணைப்பைச் சரிபார்க்கவும்.',testOk:'சோதனை அலாரம் தொடங்கியது. நிறுத்த மூடியைத் திறக்கவும்.',testFail:'சோதனையைத் தொடங்க முடியவில்லை.',
+ ackOk:'எடுத்ததாகக் குறிக்கப்பட்டது.',ackFail:'புதுப்பிக்க முடியவில்லை.',maxTimes:'ஒரு பெட்டிக்கு அதிகபட்சம் 4 நேரங்கள்.',tzMissing:'அந்த நேர மண்டலம் பட்டியலில் இல்லை.',
+ tzSet:'{tz} என அமைக்கப்பட்டது. செயல்படுத்த அமைப்புகளைச் சேமிக்கவும்.',setOk:'அமைப்புகள் சேமிக்கப்பட்டன.',setFail:'அமைப்புகளைச் சேமிக்க முடியவில்லை.',
+ logTaken:'பெட்டி {b}: {name} எடுக்கப்பட்டது ({src})',logDue:'பெட்டி {b}: {name} எடுக்க வேண்டிய நேரம்',logDueTest:'பெட்டி {b}: {name} எடுக்க வேண்டிய நேரம் (சோதனை)',
+ logMissed:'பெட்டி {b}: {name} தவறவிடப்பட்டது',logSaved:'பெட்டி {b} சேமிக்கப்பட்டது: {name}',logSettings:'அமைப்புகள் சேமிக்கப்பட்டன',empty:'(வெறுமை)',
+ src_lid:'மூடி திறக்கப்பட்டது',src_tg:'டெலிகிராம்',src_web:'வலை செயலி',src_remote:'தொலைநிலை செயலி'
+}};
+
+const $=(s,r=document)=>r.querySelector(s);
+const pad=n=>String(n).padStart(2,'0');
+let lang='en',built=false,lastS=null,offKey=null;
+try{lang=localStorage.getItem('lang')||''}catch(e){}
+if(lang!=='en'&&lang!=='ta')lang=(navigator.language||'').toLowerCase().startsWith('ta')?'ta':'en';
+
+function t(k,v){
+  let s=(I18N[lang][k]!==undefined?I18N[lang][k]:(I18N.en[k]!==undefined?I18N.en[k]:k));
+  if(v)for(const x in v)if(v[x]!==undefined)s=s.split('{'+x+'}').join(v[x]);
+  return s;
+}
+function tzLabel(m){const a=Math.abs(m);return 'UTC'+(m<0?'-':'+')+pad(Math.floor(a/60))+':'+pad(a%60)}
+function toast(m){const e=$('#toast');e.textContent=m;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),2600)}
+async function post(path,data){
+  const r=await fetch(path,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams(data)});
+  if(!r.ok)throw new Error(r.status);return r;
+}
+
+// ---------- text helpers (device sends language-neutral data; we word it here) ----------
+function medLabel(name){
+  if(lang==='ta'){const m=MEDS.find(x=>x[0].toLowerCase()===String(name).toLowerCase());if(m)return m[1]}
+  return name;
+}
+function fmtIn(mins){
+  const d=Math.floor(mins/1440),h=Math.floor(mins%1440/60);
+  if(lang==='ta'){
+    if(mins>=1440)return d+' நாள் '+h+' மணி';
+    if(mins>=60)return Math.floor(mins/60)+' மணி '+pad(mins%60)+' நிமிடம்';
+    return mins+' நிமிடம்';
+  }
+  if(mins>=1440)return d+'d '+h+'h';
+  if(mins>=60)return Math.floor(mins/60)+'h '+pad(mins%60)+'m';
+  return mins+' min';
+}
+function nextText(s){
+  if(s.ns===0&&s.nx){
+    const n=s.nx,hm=pad(Math.floor(n.m/60))+':'+pad(n.m%60);
+    const when=n.d===0?hm:DAYFULL[lang][n.w]+' '+hm;
+    return t('nx',{b:n.b+1,name:medLabel(n.n||'')||t('medicine'),when:when,in:fmtIn(n.i)});
+  }
+  if(s.ns===1)return t('notSynced');
+  if(s.ns===2)return t('noDoses');
+  if(s.status==='offline')return t('devOffline');
+  if(s.status==='waiting')return t('devWaiting');
+  const map={'No doses scheduled':'noDoses','Time not synced yet':'notSynced','Device is offline':'devOffline','Waiting for the device...':'devWaiting'};
+  return map[s.next]?t(map[s.next]):(s.next||'');
+}
+function dateText(s){
+  if(typeof s.lt==='number'){
+    try{return new Date(s.lt*1000).toLocaleDateString(lang==='ta'?'ta-IN':'en-GB',{weekday:'long',day:'numeric',month:'long',timeZone:'UTC'})}catch(e){}
+  }
+  return s.date||'';
+}
+function evText(ev){
+  const r=/^(Taken|Missed) (\d\d:\d\d)$/.exec(ev||'');
+  return r?t(r[1]==='Taken'?'taken':'missed')+' '+r[2]:(ev||'');
+}
+function srcText(x){
+  const k={'lid opened':'src_lid','Telegram':'src_tg','web app':'src_web','remote app':'src_remote'}[x];
+  return k?t(k):x;
+}
+function logText(m){
+  let r;
+  if((r=/^Box (\d) (.+) taken \((.+)\)$/.exec(m)))return t('logTaken',{b:r[1],name:medLabel(r[2]),src:srcText(r[3])});
+  if((r=/^Box (\d) due: (.+?)( \(test\))?$/.exec(m)))return t(r[3]?'logDueTest':'logDue',{b:r[1],name:medLabel(r[2])});
+  if((r=/^Box (\d) (.+) MISSED$/.exec(m)))return t('logMissed',{b:r[1],name:medLabel(r[2])});
+  if((r=/^Box (\d) saved: (.+)$/.exec(m)))return t('logSaved',{b:r[1],name:r[2]==='(empty)'?t('empty'):medLabel(r[2])});
+  if(m==='Settings saved')return t('logSettings');
+  return m;
+}
+
+// ---------- language application ----------
+function fillMed(sel){
+  const cur=sel.value;
+  sel.innerHTML='';
+  const add=(v,txt)=>{const o=document.createElement('option');o.value=v;o.textContent=txt;sel.appendChild(o)};
+  add('',t('selMed'));
+  MEDS.forEach(m=>add(m[0],lang==='ta'?m[1]+' ('+m[0]+')':m[0]));
+  add('__other',t('other'));
+  sel.value=cur;
+}
+function fillIns(sel){
+  const cur=sel.value;
+  sel.innerHTML='';
+  INS.forEach(x=>{const o=document.createElement('option');o.value=x[0];o.textContent=t(x[1]);sel.appendChild(o)});
+  sel.value=cur;
+}
+function applyStatic(){
+  document.documentElement.lang=lang;
+  document.title=t('title');
+  document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n,{n:el.dataset.n})});
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{el.placeholder=t(el.dataset.i18nPh)});
+  document.querySelectorAll('[data-i18n-aria]').forEach(el=>{el.setAttribute('aria-label',t(el.dataset.i18nAria))});
+  $('#langbtn').textContent=lang==='ta'?'English':'தமிழ்';
+  if(!$('#installbtn').hidden)$('#installbtn').textContent=t('install');
+  document.querySelectorAll('.med').forEach(fillMed);
+  document.querySelectorAll('.ins').forEach(fillIns);
+  document.querySelectorAll('.box .day').forEach(d=>{d.textContent=DAYS[lang][+d.dataset.k]});
+  document.querySelectorAll('.chip .x').forEach(x=>x.setAttribute('aria-label',t('rmTime')));
+  if(!lastS)$('#next').textContent=t('connecting');
+  const off=$('#offline');
+  if(offKey){off.textContent=t(offKey);off.hidden=false}else off.hidden=true;
+}
+function applyLang(){applyStatic();if(lastS)render(lastS)}
+$('#langbtn').onclick=()=>{
+  lang=lang==='ta'?'en':'ta';
+  try{localStorage.setItem('lang',lang)}catch(e){}
+  applyLang();
+};
+
+// ---------- cards ----------
+function timeRow(v){
+  const s=document.createElement('span');s.className='chip';
+  s.innerHTML='<input type="time" required><button type="button" class="x">&times;</button>';
+  $('input',s).value=v||'08:00';
+  $('.x',s).setAttribute('aria-label',t('rmTime'));
+  return s;
+}
+function buildCard(b,i){
+  const a=document.createElement('article');
+  a.className='box';a.id='box'+i;a.dataset.i=i;a.style.setProperty('--c',COL[i]);
+  a.innerHTML=`
+  <div class="lid"><span class="boxname" data-i18n="box" data-n="${i+1}"></span><span class="lidstate"></span></div>
+  <div class="body">
+    <div class="row">
+      <span class="badge"></span>
+      <label class="sw"><input type="checkbox" class="en"><span data-i18n="remOn"></span></label>
+    </div>
+    <label><span data-i18n="medicine"></span><select class="med"></select></label>
+    <input type="text" class="oth" maxlength="20" hidden data-i18n-ph="medName" data-i18n-aria="medName">
+    <label><span data-i18n="howTo"></span><select class="ins"></select></label>
+    <fieldset><legend data-i18n="times"></legend>
+      <div class="times"></div>
+      <button type="button" class="btn add" data-i18n="addTime"></button>
+    </fieldset>
+    <fieldset><legend data-i18n="days"></legend>
+      <div class="days">${[0,1,2,3,4,5,6].map(k=>`<button type="button" class="day" data-k="${k}"></button>`).join('')}</div>
+    </fieldset>
+    <div class="actions">
+      <button type="button" class="btn primary save" data-i18n="saveBox" data-n="${i+1}"></button>
+      <button type="button" class="btn test" data-i18n="test"></button>
+      <button type="button" class="btn ack" hidden data-i18n="ack"></button>
+    </div>
+  </div>`;
+  fillMed($('.med',a));fillIns($('.ins',a));
+  $('.en',a).checked=!!b.en;
+  if(b.name){
+    if(MEDS.some(m=>m[0]===b.name))$('.med',a).value=b.name;
+    else{$('.med',a).value='__other';$('.oth',a).hidden=false;$('.oth',a).value=b.name}
+  }
+  $('.ins',a).value=b.instr||'';
+  const tc=$('.times',a);(b.times||[]).forEach(x=>tc.appendChild(timeRow(x)));
+  a.querySelectorAll('.day').forEach((d,k)=>{if(b.days>>k&1)d.classList.add('on')});
+  $('.med',a).addEventListener('change',()=>{$('.oth',a).hidden=$('.med',a).value!=='__other'});
+  return a;
+}
+function paintCard(b,i){
+  const a=$('#box'+i);
+  a.classList.toggle('due',!!b.alarm);
+  $('.lidstate',a).textContent=b.open?t('lidOpen'):t('lidClosed');
+  const st=$('.badge',a);
+  st.textContent=b.alarm?t('takeNow'):(b.last?evText(b.last):(b.en?t('waiting'):t('off')));
+  st.className='badge'+(b.alarm?' due':'');
+  $('.ack',a).hidden=!b.alarm;
+}
+async function save(a,i){
+  let name=$('.med',a).value;if(name==='__other')name=$('.oth',a).value.trim();
+  const times=[...a.querySelectorAll('.times input')].map(x=>x.value).filter(Boolean).join(',');
+  let days=0;a.querySelectorAll('.day').forEach((d,k)=>{if(d.classList.contains('on'))days|=1<<k});
+  const en=$('.en',a).checked;
+  if(en&&!name)return toast(t('needMed'));
+  if(en&&!times)return toast(t('needTime'));
+  if(en&&!days)return toast(t('needDay'));
+  try{
+    await post('/api/box',{id:i,name:name,instr:$('.ins',a).value,en:en?1:0,days:days,times:times});
+    toast(t('saved',{n:i+1}));refresh();
+  }catch(e){toast(t('saveFail'))}
+}
+$('#boxes').addEventListener('click',async e=>{
+  const b=e.target.closest('button');if(!b)return;
+  const a=b.closest('.box');const i=+a.dataset.i;
+  if(b.matches('.add')){
+    const c=$('.times',a);
+    if(c.children.length>=4)return toast(t('maxTimes'));
+    c.appendChild(timeRow());
+  }else if(b.matches('.x')){b.parentElement.remove()}
+  else if(b.matches('.day')){b.classList.toggle('on')}
+  else if(b.matches('.save')){await save(a,i)}
+  else if(b.matches('.test')){
+    try{await post('/api/test',{id:i});toast(t('testOk'));refresh()}catch(err){toast(t('testFail'))}
+  }else if(b.matches('.ack')){
+    try{await post('/api/ack',{id:i});toast(t('ackOk'));refresh()}catch(err){toast(t('ackFail'))}
+  }
+});
+
+// ---------- settings ----------
+$('#tz').innerHTML=TZS.map(m=>`<option value="${m}">${tzLabel(m)}</option>`).join('');
+$('#tzphone').onclick=()=>{
+  const m=-new Date().getTimezoneOffset();
+  if(!TZS.includes(m))return toast(t('tzMissing'));
+  $('#tz').value=m;toast(t('tzSet',{tz:tzLabel(m)}));
+};
+$('#vol').oninput=e=>{$('#volv').textContent=e.target.value};
+async function saveSettings(){
+  try{await post('/api/settings',{tz:$('#tz').value,vol:$('#vol').value,lang:$('#vlang').value});toast(t('setOk'));refresh()}
+  catch(e){toast(t('setFail'))}
+}
+$('#saveset').onclick=saveSettings;
+$('#vlang').onchange=saveSettings;   // switching the voice language takes effect immediately
+
+// ---------- render / poll ----------
+function render(s){
+  offKey=(s.online===false)?'devOfflineNote':null;
+  const off=$('#offline');
+  if(offKey){off.textContent=t(offKey);off.hidden=false}else off.hidden=true;
+
+  if(s.valid){
+    const p=s.time.split(':');
+    $('#hm').textContent=p[0]+':'+p[1];$('#sec').textContent=':'+p[2];
+    $('#date').textContent=dateText(s);
+  }else{
+    $('#hm').textContent='--:--';$('#sec').textContent=':--';
+    $('#date').textContent=s.status?'':t('waitTime');
+  }
+  const nx=$('#next');nx.textContent='';
+  if(s.status){nx.textContent=nextText(s)}
+  else{
+    const nb=document.createElement('b');nb.textContent=t('nextDose')+' ';
+    nx.append(nb,document.createTextNode(nextText(s)));
+  }
+
+  if(!built){
+    const host=$('#boxes');
+    s.boxes.forEach((b,i)=>host.appendChild(buildCard(b,i)));
+    $('#tz').value=s.tz;$('#vol').value=s.vol;$('#volv').textContent=s.vol;
+    $('#vlang').value=String(s.lang||0);
+    built=true;
+    applyStatic();
+  }
+  s.boxes.forEach((b,i)=>paintCard(b,i));
+
+  const ul=$('#log');ul.innerHTML='';
+  if(!s.log||!s.log.length){const li=document.createElement('li');li.className='empty';li.textContent=t('nothing');ul.appendChild(li)}
+  else s.log.forEach(l=>{
+    const li=document.createElement('li'),tm=document.createElement('time'),tx=document.createElement('span');
+    tm.textContent=l.t;tx.textContent=logText(l.m);li.append(tm,tx);ul.appendChild(li);
+  });
+}
+async function refresh(){
+  try{
+    const r=await fetch('/api/state',{cache:'no-store'});
+    const s=await r.json();
+    lastS=s;render(s);
+  }catch(e){
+    offKey='offNet';const off=$('#offline');off.textContent=t(offKey);off.hidden=false;
+  }
+}
+applyStatic();
+refresh();setInterval(refresh,3000);
+
+// ---------- installable app (Android "Add to Home Screen" -> a real launchable icon) ----------
+let deferredInstall=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  deferredInstall=e;
+  const b=$('#installbtn');b.hidden=false;b.textContent=t('install');
+});
+$('#installbtn').addEventListener('click',async()=>{
+  if(!deferredInstall)return;
+  $('#installbtn').hidden=true;
+  deferredInstall.prompt();
+  await deferredInstall.userChoice;
+  deferredInstall=null;
+});
+window.addEventListener('appinstalled',()=>{
+  $('#installbtn').hidden=true;
+  toast(t('installed'));
+});
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
+)rawliteral";
